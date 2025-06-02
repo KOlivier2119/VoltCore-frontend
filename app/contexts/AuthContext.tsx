@@ -1,48 +1,88 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { UserDTO } from '../lib/types';
-import api, { setAuthHeader, clearAuthHeader } from '../lib/api';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { UserDTO, RegisterRequest } from "@/app/lib/types";
+import { authService } from "@/app/lib/services";
 
 interface AuthContextType {
   user: UserDTO | null;
   login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
-  isAdmin: () => boolean;
+  register: (data: RegisterRequest) => Promise<void>;
+  logout: () => Promise<void>;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserDTO | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      authService
+        .getProfile()
+        .then((userData: UserDTO) => {
+          setUser(userData);
+        })
+        .catch(() => {
+          localStorage.removeItem("token");
+          localStorage.removeItem("refreshToken");
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
+    }
+  }, []);
 
   const login = async (username: string, password: string) => {
     try {
-      setAuthHeader(username, password);
-      const response = await api.post<UserDTO>('/users/login', { username, password });
-      setUser(response.data);
-    } catch (error) {
-      clearAuthHeader();
-      throw error;
+      const response = await authService.login({ username, password });
+      const { token, refreshToken, user } = response;
+      localStorage.setItem("token", token);
+      if (refreshToken) {
+        localStorage.setItem("refreshToken", refreshToken);
+      }
+      setUser(user);
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Login failed";
+      throw new Error(message);
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    clearAuthHeader();
+  const register = async (data: RegisterRequest) => {
+    try {
+      await authService.register(data);
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Registration failed";
+      throw new Error(message);
+    }
   };
 
-  const isAdmin = () => user?.role === 'ADMIN';
+  const logout = async () => {
+    try {
+      await authService.logout();
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      setUser(null);
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
+export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
   return context;
-};
+}

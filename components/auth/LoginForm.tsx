@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { LucideLoader2, Mail, Lock } from "lucide-react";
+import { LucideLoader2, User, Lock } from "lucide-react";
 import { useAuth } from "@/app/contexts/AuthContext";
 
 export function LoginForm() {
@@ -15,7 +15,7 @@ export function LoginForm() {
   const { login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     password: "",
   });
 
@@ -32,11 +32,11 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      await login(formData.email, formData.password);
+      await login(formData.username, formData.password);
       toast.success("Logged in successfully!");
       router.push("/dashboard");
     } catch (error) {
-      toast.error("Invalid email or password");
+      toast.error("Invalid username or password");
     } finally {
       setIsLoading(false);
     }
@@ -48,25 +48,25 @@ export function LoginForm() {
         <div className="space-y-4">
           <div className="relative">
             <Label
-              htmlFor="email"
+              htmlFor="username"
               className="text-sm font-medium text-gray-700"
             >
-              Email address
+              Username
             </Label>
             <div className="mt-1 relative rounded-md shadow-sm">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
+                <User className="h-5 w-5 text-gray-400" />
               </div>
               <Input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
                 required
-                value={formData.email}
+                value={formData.username}
                 onChange={handleChange}
                 className="pl-10 bg-gray-50 border-gray-200 focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="you@example.com"
+                placeholder="Enter your username"
               />
             </div>
           </div>
