@@ -28,6 +28,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await authService.login({ username, password });
       const userData: UserDTO = response.user; // Extract user from AuthResponse
       setUser(userData);
+      localStorage.setItem("token", response.token); // Store token in localStorage
+      console.log(response.token)
     } catch (error: any) {
       const message = error.response?.data?.message || "Login failed";
       throw new Error(message);
