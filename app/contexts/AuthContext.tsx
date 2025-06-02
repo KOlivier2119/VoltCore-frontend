@@ -19,34 +19,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      authService
-        .getProfile()
-        .then((userData: UserDTO) => {
-          setUser(userData);
-        })
-        .catch(() => {
-          localStorage.removeItem("token");
-          localStorage.removeItem("refreshToken");
-        })
-        .finally(() => {
-          setIsLoading(false);
-        });
-    } else {
-      setIsLoading(false);
-    }
+    // No token-based session check for Basic Auth
+    setIsLoading(false);
   }, []);
 
   const login = async (username: string, password: string) => {
     try {
       const response = await authService.login({ username, password });
-      const { token, refreshToken, user } = response;
-      localStorage.setItem("token", token);
-      if (refreshToken) {
-        localStorage.setItem("refreshToken", refreshToken);
-      }
-      setUser(user);
+      const userData: UserDTO = response.user; // Extract user from AuthResponse
+      setUser(userData);
     } catch (error: any) {
       const message = error.response?.data?.message || "Login failed";
       throw new Error(message);
@@ -65,10 +46,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     try {
       await authService.logout();
-    } finally {
-      localStorage.removeItem("token");
-      localStorage.removeItem("refreshToken");
       setUser(null);
+    } catch (error: any) {
+      const message = error.response?.data?.message || "Logout failed";
+      throw new Error(message);
     }
   };
 
