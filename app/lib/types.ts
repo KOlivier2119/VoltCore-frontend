@@ -1,31 +1,38 @@
 export interface UserDTO {
-  id?: number;
+  id: string;
   username: string;
-  password?: string;
-  role: string;
-  email?: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  role: 'USER' | 'ADMIN';
+  status: 'ACTIVE' | 'INACTIVE';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface AccountDTO {
-  id?: number;
-  accountNumber?: string;
+  id: string;
   accountHolderName: string;
-  balance?: number;
-  accountType: string;
-  status?: string;
+  accountNumber: string;
+  accountType: 'CHECKING' | 'SAVINGS' | 'CREDIT' | 'INVESTMENT';
+  balance: number;
+  status: 'ACTIVE' | 'INACTIVE' | 'FROZEN';
   interestRate?: number;
-  email?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface TransactionDTO {
-  id?: number;
-  accountId?: number;
-  transactionType: string;
+  id: string;
+  accountId: string;
+  transactionType: 'CREDIT' | 'DEBIT';
   amount: number;
-  transactionDate?: string;
-  description?: string;
-  paymentMethod?: string;
-  relatedTransactionId?: number;
+  description: string;
+  category?: string;
+  transactionDate: string;
+  status: 'PENDING' | 'COMPLETED' | 'FAILED';
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface LoginRequest {

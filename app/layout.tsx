@@ -1,26 +1,28 @@
-import './globals.css';
-import { Inter } from 'next/font/google';
-import { AuthProvider } from './contexts/AuthContext';
-import Navbar from './components/Navbar';
-import { ToastProvider } from './components/ToastProvider';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Providers } from "./providers";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  title: 'VoltCore Banking',
-  description: 'Modern banking application',
+export const metadata: Metadata = {
+  title: "Volt Core",
+  description: "A modern financial management platform",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <AuthProvider>
-          <ToastProvider>
-            <Navbar />
-            <main className="container mx-auto p-4">{children}</main>
-          </ToastProvider>
-        </AuthProvider>
+    <html lang="en" className="h-full bg-gray-50">
+      <body className={`${inter.className} h-full antialiased`}>
+        <Providers>
+          <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );
