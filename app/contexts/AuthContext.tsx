@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(null);
     } catch (error: any) {
       const message = error.response?.data?.message || "Logout failed";
-      throw new Error(message);
+      console.error(message);
     }
   };
 

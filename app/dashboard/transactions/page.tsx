@@ -58,7 +58,7 @@ export default function TransactionsPage() {
             <Filter className="mr-2 h-4 w-4" /> Filter
           </Button>
           <Button
-            onClick={() => router.push("/transactions/new")}
+            onClick={() => router.push("/dashboard/transactions/new")}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="mr-2 h-4 w-4" /> New Transaction

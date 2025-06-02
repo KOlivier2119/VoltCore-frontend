@@ -36,8 +36,8 @@ export default function DashboardLayout({
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "Accounts", href: "/accounts", icon: CreditCard },
-    { name: "Transactions", href: "/transactions", icon: History },
+    { name: "Accounts", href: "/dashboard/accounts", icon: CreditCard },
+    { name: "Transactions", href: "/dashboard/transactions", icon: History },
     { name: "Settings", href: "/settings", icon: Settings },
   ];
 
