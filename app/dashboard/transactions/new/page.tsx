@@ -31,8 +31,10 @@ export default function NewTransactionPage() {
     category: "",
   });
 
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
-    if (!user) {
+    if (!token) {
       router.push("/login");
       return;
     }
@@ -51,7 +53,7 @@ export default function NewTransactionPage() {
     };
 
     fetchAccounts();
-  }, [user, router]);
+  }, [token, router]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>

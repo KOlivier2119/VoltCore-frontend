@@ -13,9 +13,10 @@ export default function TransactionsPage() {
   const router = useRouter();
   const [transactions, setTransactions] = useState<TransactionDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!user) {
+    if (!token) {
       router.push("/login");
       return;
     }
@@ -32,9 +33,9 @@ export default function TransactionsPage() {
     };
 
     fetchTransactions();
-  }, [user, router]);
+  }, [token, router]);
 
-  if (!user) return null;
+  if (!token) return null;
 
   const totalIncome = transactions
     .filter((t) => t.transactionType === "CREDIT")

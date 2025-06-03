@@ -23,9 +23,10 @@ export default function DashboardPage() {
     TransactionDTO[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!user) {
+    if (!token) {
       router.push("/login");
       return;
     }
@@ -34,7 +35,7 @@ export default function DashboardPage() {
       try {
         const [accountsRes, transactionsRes] = await Promise.all([
           api.get<AccountDTO[]>("/accounts"),
-          api.get<TransactionDTO[]>("/transactions/recent"),
+          api.get<TransactionDTO[]>("/dashboard/transactions/recent"),
         ]);
         setAccounts(accountsRes.data);
         setRecentTransactions(transactionsRes.data);
@@ -66,7 +67,7 @@ export default function DashboardPage() {
           <p className="text-gray-600 mt-1">Here's your financial overview</p>
         </div>
         <Button
-          onClick={() => router.push("/transactions/new")}
+          onClick={() => router.push("/dashboard/transactions/new")}
           className="bg-blue-600 hover:bg-blue-700 text-white"
         >
           <Send className="mr-2 h-4 w-4" /> New Transaction

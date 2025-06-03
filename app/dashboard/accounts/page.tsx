@@ -13,9 +13,10 @@ export default function AccountsPage() {
   const router = useRouter();
   const [accounts, setAccounts] = useState<AccountDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!user) {
+    if (!token) {
       router.push("/login");
       return;
     }
@@ -46,7 +47,7 @@ export default function AccountsPage() {
           </p>
         </div>
         <Button
-          onClick={() => router.push("/accounts/new")}
+          onClick={() => router.push("/dashboard/accounts/new")}
           className="bg-blue-600 hover:bg-blue-700 text-white"
         >
           <Plus className="mr-2 h-4 w-4" /> Add Account

@@ -25,12 +25,13 @@ export default function DashboardLayout({
   const { user, logout } = useAuth();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!user) {
+    if (!token) {
       router.push("/login");
     }
-  }, [user, router]);
+  }, [token, router]);
 
   if (!user) return null;
 
@@ -50,7 +51,7 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-gray-50">
       {/* Sidebar for desktop */}
       <div
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-50 shadow-lg transform transition-transform duration-300 ease-in-out ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
         } lg:translate-x-0`}
       >
