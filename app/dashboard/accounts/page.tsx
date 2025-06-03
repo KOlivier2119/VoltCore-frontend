@@ -13,10 +13,9 @@ export default function AccountsPage() {
   const router = useRouter();
   const [accounts, setAccounts] = useState<AccountDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!token) {
+    if (!user && !isLoading) {
       router.push("/login");
       return;
     }
@@ -33,7 +32,7 @@ export default function AccountsPage() {
     };
 
     fetchAccounts();
-  }, [user, router]);
+  }, [user, isLoading, router]);
 
   if (!user) return null;
 

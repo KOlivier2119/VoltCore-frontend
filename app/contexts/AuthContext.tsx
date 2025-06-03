@@ -3,6 +3,9 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { UserDTO, RegisterRequest } from "@/app/lib/types";
 import { authService } from "@/app/lib/services";
+import api from "@/app/lib/api";
+import { usePathname, useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface AuthContextType {
   user: UserDTO | null;
@@ -17,11 +20,51 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserDTO | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const pathname = usePathname();
+  const router = useRouter();
 
+  // Restore user from token on mount and on route change
   useEffect(() => {
-    // No token-based session check for Basic Auth
-    setIsLoading(false);
-  }, []);
+    const restoreUser = async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
+      if (token) {
+        api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        try {
+          const userData = await authService.getProfile();
+          setUser(userData);
+        } catch (error) {
+          // setUser(null);
+          // toast.error("Failed to restore user session. Please log in again.");
+          // Do not remove token or Authorization header here
+        }
+      } else {
+        setUser(null);
+        delete api.defaults.headers.common["Authorization"];
+      }
+      setIsLoading(false);
+    };
+    restoreUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // Listen for force-logout flag and handle client-side redirect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const handleStorage = () => {
+        if (localStorage.getItem('force-logout') === '1') {
+          localStorage.removeItem('force-logout');
+          setUser(null);
+          localStorage.removeItem('token');
+          delete api.defaults.headers.common["Authorization"];
+          router.push('/login');
+        }
+      };
+      window.addEventListener('storage', handleStorage);
+      // Also check immediately in case the flag was set in this tab
+      handleStorage();
+      return () => window.removeEventListener('storage', handleStorage);
+    }
+  }, [router]);
 
   const login = async (username: string, password: string) => {
     try {
@@ -29,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userData: UserDTO = response.user; // Extract user from AuthResponse
       setUser(userData);
       localStorage.setItem("token", response.token); // Store token in localStorage
-      console.log(response.token)
+      api.defaults.headers.common["Authorization"] = `Bearer ${response.token}`;
     } catch (error: any) {
       const message = error.response?.data?.message || "Login failed";
       throw new Error(message);
@@ -49,6 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await authService.logout();
       setUser(null);
+      localStorage.removeItem("token");
+      delete api.defaults.headers.common["Authorization"];
     } catch (error: any) {
       const message = error.response?.data?.message || "Logout failed";
       console.error(message);

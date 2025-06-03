@@ -18,7 +18,7 @@ export const accountsApi = {
   },
 
   updateAccount: async (id: string, data: Partial<AccountDTO>): Promise<AccountDTO> => {
-    const response = await api.patch<AccountDTO>(`/accounts/${id}`, data);
+    const response = await api.put<AccountDTO>(`/accounts/${id}`, data);
     return response.data;
   },
 

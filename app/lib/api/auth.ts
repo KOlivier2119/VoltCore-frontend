@@ -12,7 +12,7 @@ export const authApi = {
   },
 
   getProfile: async (): Promise<UserDTO> => {
-    const response = await api.get<UserDTO>('/auth/profile');
+    const response = await api.get<UserDTO>('/auth/me');
     return response.data;
   },
 

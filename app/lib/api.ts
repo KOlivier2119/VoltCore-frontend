@@ -18,13 +18,28 @@ export function clearAuthHeader() {
   delete api.defaults.headers.common['Authorization'];
 }
 
+// Add request interceptor to attach token
+api.interceptors.request.use(
+  (config) => {
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('token');
+      if (token) {
+        config.headers = config.headers || {};
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
 // Response interceptor for error handling
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
       clearAuthHeader();
-      window.location.href = '/login';
+      localStorage.setItem('force-logout', '1');
     }
     return Promise.reject(error);
   }

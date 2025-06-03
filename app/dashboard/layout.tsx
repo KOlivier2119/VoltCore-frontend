@@ -22,16 +22,15 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const router = useRouter();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!token) {
+    if (!user && !isLoading) {
       router.push("/login");
     }
-  }, [token, router]);
+  }, [user, isLoading, router]);
 
   if (!user) return null;
 
@@ -39,7 +38,7 @@ export default function DashboardLayout({
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Accounts", href: "/dashboard/accounts", icon: CreditCard },
     { name: "Transactions", href: "/dashboard/transactions", icon: History },
-    { name: "Settings", href: "/settings", icon: Settings },
+    { name: "Settings", href: "/dashboard/settings", icon: Settings },
   ];
 
   const handleLogout = () => {

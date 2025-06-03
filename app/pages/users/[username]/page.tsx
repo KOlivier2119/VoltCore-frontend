@@ -20,16 +20,16 @@ interface FormData {
 export default function UserProfilePage({ params }: { params: { username: string } }) {
   const { username } = params;
   const { register, handleSubmit, reset } = useForm<FormData>();
-  const { user, isAdmin } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const [profile, setProfile] = useState<UserDTO | null>(null);
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !isLoading) {
       router.push('/login');
       return;
     }
-    if (!isAdmin() && user.username !== username) {
+    if (!isAdmin() && user && user.username !== username) {
       router.push(`/users/${user.username}`);
       return;
     }
@@ -45,7 +45,7 @@ export default function UserProfilePage({ params }: { params: { username: string
       }
     };
     fetchUser();
-  }, [username, user, isAdmin, router, reset]);
+  }, [username, user, isAdmin, isLoading, router, reset]);
 
   const onSubmit = async (data: FormData) => {
     try {

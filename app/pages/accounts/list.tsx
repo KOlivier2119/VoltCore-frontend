@@ -12,14 +12,14 @@ import { ConfirmationDialog } from '../../components/ConfirmationDialog';
 import Link from 'next/link';
 
 export default function AccountListPage() {
-  const { isAdmin } = useAuth();
+  const { user, isLoading, isAdmin } = useAuth();
   const [accounts, setAccounts] = useState<AccountDTO[]>([]);
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; accountNumber: string | null }>({ open: false, accountNumber: null });
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAdmin()) {
-      router.push('/accounts');
+    if ((!user || !isAdmin()) && !isLoading) {
+      router.push('/login');
       return;
     }
 
@@ -32,7 +32,7 @@ export default function AccountListPage() {
         }
     };
     fetchAccounts();
-  }, [isAdmin, router]);
+  }, [user, isAdmin, isLoading, router]);
 
   const handleDelete = async () => {
     if (!deleteDialog.accountNumber) return;

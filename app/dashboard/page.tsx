@@ -23,10 +23,9 @@ export default function DashboardPage() {
     TransactionDTO[]
   >([]);
   const [isLoading, setIsLoading] = useState(true);
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!token) {
+    if (!user && !isLoading) {
       router.push("/login");
       return;
     }
@@ -47,7 +46,7 @@ export default function DashboardPage() {
     };
 
     fetchDashboardData();
-  }, [user, router]);
+  }, [user, isLoading, router]);
 
   if (!user) return null;
 

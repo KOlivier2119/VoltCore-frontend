@@ -9,14 +9,12 @@ import api from "@/app/lib/api";
 import { TransactionDTO } from "@/app/lib/types";
 
 export default function TransactionsPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const router = useRouter();
   const [transactions, setTransactions] = useState<TransactionDTO[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const token = localStorage.getItem("token");
 
   useEffect(() => {
-    if (!token) {
+    if (!user && !isLoading) {
       router.push("/login");
       return;
     }
@@ -27,15 +25,13 @@ export default function TransactionsPage() {
         setTransactions(response.data);
       } catch (error) {
         console.error("Error fetching transactions:", error);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchTransactions();
-  }, [token, router]);
+  }, [user, isLoading, router]);
 
-  if (!token) return null;
+  if (!user) return null;
 
   const totalIncome = transactions
     .filter((t) => t.transactionType === "CREDIT")
