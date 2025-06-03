@@ -23,25 +23,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Restore user from token on mount and on route change
+  // Always read the token from localStorage on mount and on every route change
   useEffect(() => {
     const restoreUser = async () => {
+      setIsLoading(true); // Start loading
       const token = typeof window !== 'undefined' ? localStorage.getItem("token") : null;
       if (token) {
         api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         try {
-          const userData = await authService.getProfile();
-          setUser(userData);
+          // Temporarily comment out profile fetch while backend is being fixed
+          // const userData = await authService.getProfile();
+          // setUser(userData);
         } catch (error) {
-          // setUser(null);
+          setUser(null);
+          // Optionally show a toast, but do not remove the token automatically
           // toast.error("Failed to restore user session. Please log in again.");
-          // Do not remove token or Authorization header here
         }
       } else {
         setUser(null);
         delete api.defaults.headers.common["Authorization"];
       }
-      setIsLoading(false);
+      setIsLoading(false); // Done loading
     };
     restoreUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,9 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (username: string, password: string) => {
     try {
       const response = await authService.login({ username, password });
-      const userData: UserDTO = response.user; // Extract user from AuthResponse
+      const userData: UserDTO = response.user;
       setUser(userData);
-      localStorage.setItem("token", response.token); // Store token in localStorage
+      localStorage.setItem("token", response.token);
       api.defaults.headers.common["Authorization"] = `Bearer ${response.token}`;
     } catch (error: any) {
       const message = error.response?.data?.message || "Login failed";
