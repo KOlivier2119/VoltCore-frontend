@@ -54,10 +54,14 @@ export default function TransactionsPage() {
         } else if (accountId) {
           response = await api.get<TransactionDTO[]>(`/transactions/account/${accountId}`)
         } else {
+          // Use the correct API endpoint
           response = await api.get<TransactionDTO[]>(`/transactions`)
         }
-        setTransactions(response.data)
-      } catch {
+
+        console.log("Transactions API response:", response.data)
+        setTransactions(response.data || [])
+      } catch (error) {
+        console.error("Error fetching transactions:", error)
         toast.error("Failed to load transactions")
       } finally {
         setLoading(false)
@@ -106,12 +110,28 @@ export default function TransactionsPage() {
   const getAmountColor = (transactionType: string) => {
     switch (transactionType) {
       case "CREDIT":
+      case "DEPOSIT":
       case "INTEREST":
         return "text-green-600"
       case "DEBIT":
+      case "WITHDRAWAL":
         return "text-red-600"
       default:
         return "text-slate-900"
+    }
+  }
+
+  const getAmountPrefix = (transactionType: string) => {
+    switch (transactionType) {
+      case "CREDIT":
+      case "DEPOSIT":
+      case "INTEREST":
+        return "+"
+      case "DEBIT":
+      case "WITHDRAWAL":
+        return "-"
+      default:
+        return ""
     }
   }
 
@@ -165,6 +185,8 @@ export default function TransactionsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ALL">All Types</SelectItem>
+                    <SelectItem value="CREDIT">Credit</SelectItem>
+                    <SelectItem value="DEBIT">Debit</SelectItem>
                     <SelectItem value="DEPOSIT">Deposit</SelectItem>
                     <SelectItem value="WITHDRAWAL">Withdrawal</SelectItem>
                     <SelectItem value="TRANSFER">Transfer</SelectItem>
@@ -245,6 +267,14 @@ export default function TransactionsPage() {
                   {transactions.length} total
                 </Badge>
               </CardTitle>
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="hover:bg-slate-50 border-slate-200"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Refresh
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
@@ -259,7 +289,18 @@ export default function TransactionsPage() {
               <div className="text-center py-12 text-slate-500">
                 <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <h3 className="text-lg font-semibold mb-2">No transactions found</h3>
-                <p className="text-sm">Try adjusting your filters or create a new transaction.</p>
+                <p className="text-sm mb-4">
+                  {hasActiveFilters
+                    ? "Try adjusting your filters to see more results."
+                    : "No transactions have been created yet."}
+                </p>
+                <Button
+                  onClick={() => router.push("/dashboard/transactions/new")}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create First Transaction
+                </Button>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -302,18 +343,15 @@ export default function TransactionsPage() {
                         </td>
                         <td className="px-6 py-4">
                           <p className={`font-bold text-lg ${getAmountColor(transaction.transactionType)}`}>
-                            {transaction.transactionType === "CREDIT" || transaction.transactionType === "INTEREST"
-                              ? "+"
-                              : transaction.transactionType === "DEBIT"
-                                ? "-"
-                                : ""}
-                            ${transaction.amount.toLocaleString()}
+                            {getAmountPrefix(transaction.transactionType)}${transaction.amount.toLocaleString()}
                           </p>
                         </td>
                         <td className="px-6 py-4">
-                          <p className="text-slate-700">{new Date(transaction.transactionDate).toLocaleDateString()}</p>
+                          <p className="text-slate-700">
+                            {new Date(transaction.transactionDate || "").toLocaleDateString()}
+                          </p>
                           <p className="text-sm text-slate-500">
-                            {new Date(transaction.transactionDate).toLocaleTimeString()}
+                            {new Date(transaction.transactionDate || "").toLocaleTimeString()}
                           </p>
                         </td>
                         <td className="px-6 py-4">
