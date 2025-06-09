@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { useAuth } from '../../../contexts/AuthContext';
 import Link from 'next/link';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface FormData {
   amount: number;
@@ -22,6 +23,8 @@ export default function AccountDetailsPage({ params }: { params: { accountNumber
   const { register, handleSubmit } = useForm<FormData>();
   const { isAdmin } = useAuth();
   const [account, setAccount] = useState<AccountDTO | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('BANK_TRANSFER');
   const router = useRouter();
 
   useEffect(() => {
@@ -38,99 +41,135 @@ export default function AccountDetailsPage({ params }: { params: { accountNumber
   }, [accountNumber, router]);
 
   const handleDeposit = async (data: FormData) => {
+    setActionLoading(true);
     try {
-      await api.post<TransactionDTO>(`/accounts/${accountNumber}/deposit?paymentMethod=${data.paymentMethod}`, data.amount);
+      await api.post<TransactionDTO>(`/accounts/${accountNumber}/deposit?paymentMethod=${paymentMethod}`, data.amount);
       toast.success('Deposit successful');
       router.refresh();
     } catch {
       toast.error('Deposit failed: Invalid request');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleWithdraw = async (data: FormData) => {
+    setActionLoading(true);
     try {
-      await api.post<TransactionDTO>(`/accounts/${accountNumber}/withdraw?paymentMethod=${data.paymentMethod}`, data.amount);
+      await api.post<TransactionDTO>(`/accounts/${accountNumber}/withdraw?paymentMethod=${paymentMethod}`, data.amount);
       toast.success('Withdrawal successful');
       router.refresh();
     } catch {
       toast.error('Withdrawal failed: Invalid request');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleClose = async () => {
+    setActionLoading(true);
     try {
       await api.post(`/accounts/${accountNumber}/close`);
       toast.success('Account closed');
       router.push('/accounts');
     } catch {
       toast.error('Close failed: Invalid request');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   const handleApplyInterest = async () => {
+    setActionLoading(true);
     try {
       await api.post(`/accounts/${accountNumber}/apply-interest`);
       toast.success('Interest applied');
       router.refresh();
     } catch {
       toast.error('Interest application failed: Invalid request');
+    } finally {
+      setActionLoading(false);
     }
   };
 
   if (!account) return <div>Loading...</div>;
 
   return (
+    <div className="container mx-auto px-4 py-8 max-w-3xl">
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-4">Account Details</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <p className="text-gray-600">Account Number</p>
+            <p className="font-semibold text-gray-900">{account.accountNumber}</p>
+          </div>
+          <div>
+            <p className="text-gray-600">Holder</p>
+            <p className="font-semibold text-gray-900">{account.accountHolderName}</p>
+          </div>
     <div>
-      <h1 className="text-2xl font-bold mb-4">Account: {account.accountNumber}</h1>
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>Holder: {account.accountHolderName}</div>
-        <div>Balance: ${account.balance}</div>
-        <div>Type: {account.accountType}</div>
-        <div>Status: {account.status}</div>
-        <div>Email: {account.email}</div>
-        <div>Interest Rate: {account.interestRate}%</div>
+            <p className="text-gray-600">Email</p>
+            <p className="font-semibold text-gray-900">{account.email}</p>
       </div>
-      <Link href={`/accounts/${accountNumber}/transactions`} className="text-blue-500">View Transactions</Link>
-      <div className="grid grid-cols-2 gap-4 mt-4">
-        <form onSubmit={handleSubmit(handleDeposit)} className="space-y-4">
-          <h2 className="text-xl font-semibold">Deposit</h2>
           <div>
-            <Label htmlFor="deposit-amount">Amount</Label>
-            <Input id="deposit-amount" type="number" {...register('amount', { required: true, min: 0 })} />
+            <p className="text-gray-600">Type</p>
+            <p className="font-semibold text-gray-900">{account.accountType}</p>
           </div>
           <div>
-            <Label htmlFor="deposit-method">Payment Method</Label>
-            <select id="deposit-method" {...register('paymentMethod', { required: true })} className="w-full p-2 border rounded">
-              <option value="PAYPAL">PayPal</option>
-              <option value="CREDIT_CARD">Credit Card</option>
-              <option value="BANK_TRANSFER">Bank Transfer</option>
-            </select>
-          </div>
-          <Button type="submit">Deposit</Button>
-        </form>
-        <form onSubmit={handleSubmit(handleWithdraw)} className="space-y-4">
-          <h2 className="text-xl font-semibold">Withdraw</h2>
-          <div>
-            <Label htmlFor="withdraw-amount">Amount</Label>
-            <Input id="withdraw-amount" type="number" {...register('amount', { required: true, min: 0 })} />
+            <p className="text-gray-600">Balance</p>
+            <p className="font-semibold text-gray-900">${account.balance?.toLocaleString()}</p>
           </div>
           <div>
-            <Label htmlFor="withdraw-method">Payment Method</Label>
-            <select id="withdraw-method" {...register('paymentMethod', { required: true })} className="w-full p-2 border rounded">
-              <option value="PAYPAL">PayPal</option>
-              <option value="CREDIT_CARD">Credit Card</option>
-              <option value="BANK_TRANSFER">Bank Transfer</option>
-            </select>
+            <p className="text-gray-600">Status</p>
+            <p className="font-semibold text-gray-900">{account.status}</p>
           </div>
-          <Button type="submit">Withdraw</Button>
-        </form>
-      </div>
-      {isAdmin() && (
-        <div className="mt-4 space-x-2">
-          <Button onClick={handleClose}>Close Account</Button>
-          <Button onClick={handleApplyInterest}>Apply Interest</Button>
+          <div>
+            <p className="text-gray-600">Interest Rate</p>
+            <p className="font-semibold text-gray-900">{account.interestRate ?? '-'}%</p>
+          </div>
         </div>
-      )}
+        <div className="flex gap-4 flex-wrap mb-4">
+          <Button variant="outline" onClick={handleApplyInterest} disabled={actionLoading}>Apply Interest</Button>
+          <Button variant="outline" onClick={handleClose} disabled={actionLoading}>Close Account</Button>
+          <Button variant="outline" onClick={() => router.push(`/accounts/${accountNumber}/edit`)}>Edit</Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <form onSubmit={handleSubmit(handleDeposit)} className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-800">Deposit</h2>
+            <Label htmlFor="depositAmount">Amount</Label>
+            <Input id="depositAmount" type="number" step="0.01" {...register('amount', { required: true, min: 0.01 })} />
+            <Label htmlFor="depositPaymentMethod">Payment Method</Label>
+            <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v)}>
+              <SelectTrigger id="depositPaymentMethod">
+                <SelectValue placeholder="Select payment method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
+                <SelectItem value="PAYPAL">PayPal</SelectItem>
+                <SelectItem value="CREDIT_CARD">Credit Card</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button type="submit" disabled={actionLoading}>Deposit</Button>
+          </form>
+          <form onSubmit={handleSubmit(handleWithdraw)} className="space-y-4">
+            <h2 className="text-lg font-semibold text-gray-800">Withdraw</h2>
+            <Label htmlFor="withdrawAmount">Amount</Label>
+            <Input id="withdrawAmount" type="number" step="0.01" {...register('amount', { required: true, min: 0.01 })} />
+            <Label htmlFor="withdrawPaymentMethod">Payment Method</Label>
+            <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v)}>
+              <SelectTrigger id="withdrawPaymentMethod">
+                <SelectValue placeholder="Select payment method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="BANK_TRANSFER">Bank Transfer</SelectItem>
+                <SelectItem value="PAYPAL">PayPal</SelectItem>
+                <SelectItem value="CREDIT_CARD">Credit Card</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button type="submit" disabled={actionLoading}>Withdraw</Button>
+        </form>
+        </div>
+      </div>
     </div>
   );
 }
